@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ComedorU · Gestión del Comedor Universitario</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<body>
+
+<div id="loader-overlay">
+  <div class="spinner"></div>
+  <p id="loader-text">Cargando comedor universitario…</p>
+</div>
+
+<div class="app" id="app" style="display:none;">
+
+  <div class="topbar">
+    <div class="brand" onclick="ir('landing')">
+      <div class="brand-mark">🍽️</div>
+      <div>
+        <div class="brand-name">ComedorU</div>
+        <div class="brand-sub">Gestión de beneficiarios</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span id="session-pill" class="pill-btn" style="display:none;">
+        👩‍🍳 <span id="session-label"></span>
+      </span>
+      <button class="icon-btn" onclick="toggleTheme()" id="theme-toggle" title="Cambiar tema">🌙</button>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- ================= LANDING ================= -->
+    <section class="view active" id="view-landing">
+      <div class="landing-wrap">
+        <div class="landing-eyebrow">🎓 Sistema de comedor universitario</div>
+        <h1 class="landing-title">Almuerzos entregados con <span>orden y a tiempo</span></h1>
+        <p class="landing-desc">Registra a los estudiantes beneficiarios y controla la entrega diaria de almuerzos en tiempo real, sin duplicados y con estadísticas al instante.</p>
+
+        <div class="portal-grid">
+          <div class="portal-card">
+            <div class="portal-icon student">👨‍🎓</div>
+            <h3>Soy estudiante</h3>
+            <p>Regístrate como beneficiario del comedor con tu código universitario y datos académicos.</p>
+            <button class="btn btn-primary btn-block" onclick="ir('estudiante')">Registrarme <span>→</span></button>
+          </div>
+          <div class="portal-card">
+            <div class="portal-icon cook">👩‍🍳</div>
+            <h3>Soy cocinera / administración</h3>
+            <p>Ingresa al panel de control para entregar almuerzos, ver estadísticas e historial.</p>
+            <button class="btn btn-green btn-block" onclick="ir('login')">Ingresar al panel <span>→</span></button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ESTUDIANTE ================= -->
+    <section class="view" id="view-estudiante">
+      <div class="page-shell" style="max-width:720px;">
+        <div class="page-head">
+          <button class="back-btn" onclick="ir('landing')">←</button>
+          <div>
+            <h2 class="page-title">Registro de beneficiario</h2>
+            <div class="page-sub">Completa tus datos para acceder al almuerzo de hoy</div>
+          </div>
+        </div>
+
+        <div class="menu-section">
+          <h3>🍛 Menú de hoy</h3>
+          <p class="menu-sub">Elige el menú que quieres reservar. Se guardará junto con tu registro.</p>
+          <div id="menu-hoy-render"></div>
+        </div>
+
+        <div class="form-card">
+          <form id="form-estudiante" novalidate>
+            <div class="form-grid">
+              <div class="field" id="f-codigo">
+                <label>Código universitario</label>
+                <input type="text" id="in-codigo" placeholder="Ej. 2021045896" autocomplete="off">
+                <div class="field-error-msg">⚠️ Ingresa tu código universitario</div>
+              </div>
+              <div class="field" id="f-nombre">
+                <label>Nombre completo</label>
+                <input type="text" id="in-nombre" placeholder="Ej. María Fernández Ruiz">
+                <div class="field-error-msg">⚠️ Ingresa tu nombre completo</div>
+              </div>
+              <div class="field" id="f-facultad">
+                <label>Facultad</label>
+                <select id="in-facultad">
+                  <option value="">Selecciona tu facultad</option>
+                  <option>Ingeniería</option>
+                  <option>Ciencias de la Salud</option>
+                  <option>Ciencias Administrativas</option>
+                  <option>Derecho y Ciencias Políticas</option>
+                  <option>Educación</option>
+                  <option>Ciencias Sociales</option>
+                  <option>Arquitectura</option>
+                </select>
+                <div class="field-error-msg">⚠️ Selecciona tu facultad</div>
+              </div>
+              <div class="field" id="f-carrera">
+                <label>Carrera</label>
+                <input type="text" id="in-carrera" placeholder="Ej. Ingeniería de Sistemas">
+                <div class="field-error-msg">⚠️ Ingresa tu carrera</div>
+              </div>
+              <div class="field" id="f-ciclo">
+                <label>Ciclo</label>
+                <select id="in-ciclo">
+                  <option value="">Selecciona tu ciclo</option>
+                  <script>document.write(Array.from({length:10},(_,i)=>`<option>${i+1}° ciclo</option>`).join(''))</script>
+                </select>
+                <div class="field-error-msg">⚠️ Selecciona tu ciclo</div>
+              </div>
+              <div class="field" id="f-correo">
+                <label>Correo institucional <span class="opt">(opcional)</span></label>
+                <input type="email" id="in-correo" placeholder="nombre@universidad.edu.pe">
+                <div class="field-error-msg">⚠️ Ingresa un correo válido</div>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary btn-block" id="btn-registrar">✅ Confirmar registro</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LOGIN COCINERA ================= -->
+    <section class="view" id="view-login">
+      <div class="page-shell" style="max-width:500px;">
+        <div class="page-head">
+          <button class="back-btn" onclick="ir('landing')">←</button>
+          <div>
+            <h2 class="page-title">Acceso del personal</h2>
+            <div class="page-sub">Panel de cocinera / administración</div>
+          </div>
+        </div>
+        <div class="login-card">
+          <div class="portal-icon cook" style="margin:0 auto 18px;">👩‍🍳</div>
+          <form id="form-login">
+            <div class="field" style="text-align:left;margin-bottom:14px;">
+              <label>Usuario</label>
+              <input type="text" id="in-user" placeholder="cocinera" autocomplete="off">
+            </div>
+            <div class="field" style="text-align:left;" id="f-pass">
+              <label>Contraseña</label>
+              <input type="password" id="in-pass" placeholder="••••••••">
+              <div class="field-error-msg">⚠️ Usuario o contraseña incorrectos</div>
+            </div>
+            <button type="submit" class="btn btn-green btn-block" style="margin-top:18px;">Ingresar al panel</button>
+          </form>
+          <div class="login-hint">🔐 Acceso de demostración — usuario <b>cocinera</b> / contraseña <b>comedor2026</b>. En producción se recomienda autenticación real en el servidor (bcrypt + JWT) con una base de datos como Firebase o MySQL.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= DASHBOARD COCINERA ================= -->
+    <section class="view" id="view-dashboard">
+      <div class="page-shell">
+        <div class="page-head">
+          <button class="back-btn" onclick="cerrarSesion()">←</button>
+          <div>
+            <h2 class="page-title">Panel de cocinera</h2>
+            <div class="page-sub" id="fecha-hoy"></div>
+          </div>
+        </div>
+
+        <div class="tabs">
+          <button class="tab-btn active" data-tab="resumen" onclick="cambiarTab('resumen')">📊 Resumen</button>
+          <button class="tab-btn" data-tab="entregas" onclick="cambiarTab('entregas')">🍽️ Entrega de almuerzos</button>
+          <button class="tab-btn" data-tab="menu" onclick="cambiarTab('menu')">🍛 Menú del día</button>
+          <button class="tab-btn" data-tab="estadisticas" onclick="cambiarTab('estadisticas')">📈 Estadísticas</button>
+          <button class="tab-btn" data-tab="historial" onclick="cambiarTab('historial')">🗂️ Historial</button>
+        </div>
+
+        <!-- RESUMEN -->
+        <div class="tab-panel active" id="tab-resumen">
+          <div class="plate-hero">
+            <div class="plate-ring-wrap">
+              <svg width="118" height="118" viewBox="0 0 118 118">
+                <circle class="plate-ring-bg" cx="59" cy="59" r="50"></circle>
+                <circle class="plate-ring-fg" id="plate-ring" cx="59" cy="59" r="50" stroke-dasharray="314" stroke-dashoffset="314"></circle>
+              </svg>
+              <div class="plate-ring-label"><span class="pct" id="plate-pct">0%</span><span class="txt">del plato servido</span></div>
+            </div>
+            <div class="plate-copy">
+              <h3>Avance de entregas de hoy</h3>
+              <p id="plate-desc">Aún no hay registros para el día de hoy.</p>
+            </div>
+          </div>
+
+          <div class="stat-grid">
+            <div class="stat-card accent-blue"><div class="stat-label">Estudiantes registrados</div><div class="stat-value" id="st-total">0</div></div>
+            <div class="stat-card accent-green"><div class="stat-label">Almuerzos entregados</div><div class="stat-value" id="st-entregados">0</div></div>
+            <div class="stat-card accent-yellow"><div class="stat-label">Almuerzos pendientes</div><div class="stat-value" id="st-pendientes">0</div></div>
+            <div class="stat-card accent-purple"><div class="stat-label">% de entregas</div><div class="stat-value" id="st-porcentaje">0%</div></div>
+          </div>
+        </div>
+
+        <!-- ENTREGAS -->
+        <div class="tab-panel" id="tab-entregas">
+          <div class="toolbar">
+            <div class="search-box">
+              <span class="ico">🔎</span>
+              <input type="text" id="in-buscar" placeholder="Buscar por código, nombre o facultad…" oninput="renderTabla()">
+            </div>
+            <div class="filter-group" id="filtros">
+              <button class="filter-chip active" data-f="todos" onclick="setFiltro('todos')">Todos</button>
+              <button class="filter-chip" data-f="pendiente" onclick="setFiltro('pendiente')">Pendientes</button>
+              <button class="filter-chip" data-f="entregado" onclick="setFiltro('entregado')">Entregados</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr><th>Código</th><th>Estudiante</th><th>Facultad / Carrera</th><th>Menú reservado</th><th>Estado</th><th>Hora de entrega</th><th>Acción</th></tr>
+              </thead>
+              <tbody id="tbody-estudiantes"></tbody>
+            </table>
+            <div class="empty-state" id="empty-tabla" style="display:none;">
+              <div class="em-icon">🍽️</div>
+              <div>No se encontraron estudiantes con ese criterio.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MENU DEL DIA -->
+        <div class="tab-panel" id="tab-menu">
+          <p class="small-note" style="margin-bottom:16px;">Configura las opciones de menú disponibles para hoy (<span id="menu-fecha-label"></span>). Los estudiantes las verán al registrarse y podrán reservar la que prefieran.</p>
+          <div class="menu-cook-grid">
+            <div class="menu-cook-card">
+              <h4>🅰️ Menú A</h4>
+              <div class="field"><label>Entrada</label><input type="text" id="menuA-entrada" placeholder="Ej. Crema de zapallo"></div>
+              <div class="field"><label>Plato de fondo</label><input type="text" id="menuA-fondo" placeholder="Ej. Lomo saltado"></div>
+              <div class="field"><label>Postre</label><input type="text" id="menuA-postre" placeholder="Ej. Gelatina"></div>
+              <div class="field"><label>Bebida</label><input type="text" id="menuA-bebida" placeholder="Ej. Chicha morada"></div>
+            </div>
+            <div class="menu-cook-card">
+              <h4>🅱️ Menú B</h4>
+              <div class="field"><label>Entrada</label><input type="text" id="menuB-entrada" placeholder="Ej. Ensalada rusa"></div>
+              <div class="field"><label>Plato de fondo</label><input type="text" id="menuB-fondo" placeholder="Ej. Tallarines verdes"></div>
+              <div class="field"><label>Postre</label><input type="text" id="menuB-postre" placeholder="Ej. Fruta"></div>
+              <div class="field"><label>Bebida</label><input type="text" id="menuB-bebida" placeholder="Ej. Refresco de maracuyá"></div>
+            </div>
+          </div>
+          <div class="form-actions" style="max-width:640px;">
+            <button class="btn btn-green" onclick="guardarMenu()">💾 Guardar menú de hoy</button>
+          </div>
+        </div>
+
+        <!-- ESTADISTICAS -->
+        <div class="tab-panel" id="tab-estadisticas">
+          <div class="chart-grid">
+            <div class="chart-card">
+              <h4>Entregados vs. pendientes</h4>
+              <div class="chart-sub">Estado actual de los almuerzos de hoy</div>
+              <canvas id="chart-donut"></canvas>
+            </div>
+            <div class="chart-card">
+              <h4>Facultades con más beneficiarios</h4>
+              <div class="chart-sub">Total de estudiantes registrados por facultad</div>
+              <canvas id="chart-facultades"></canvas>
+            </div>
+            <div class="chart-card" style="grid-column:1/-1;">
+              <h4>Entregas por hora</h4>
+              <div class="chart-sub">Distribución de entregas a lo largo del día de hoy</div>
+              <canvas id="chart-horas"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- HISTORIAL -->
+        <div class="tab-panel" id="tab-historial">
+          <div class="history-controls">
+            <div class="filter-group" id="filtros-historial">
+              <button class="filter-chip active" data-hf="dia" onclick="setFiltroHistorial('dia')">Día</button>
+              <button class="filter-chip" data-hf="semana" onclick="setFiltroHistorial('semana')">Semana</button>
+              <button class="filter-chip" data-hf="mes" onclick="setFiltroHistorial('mes')">Mes</button>
+            </div>
+            <input type="date" class="date-input" id="in-fecha-historial">
+            <div style="flex:1;"></div>
+            <div class="export-group">
+              <button class="btn btn-outline" onclick="exportar('csv')">⬇️ CSV</button>
+              <button class="btn btn-outline" onclick="exportar('excel')">⬇️ Excel</button>
+              <button class="btn btn-outline" onclick="exportar('pdf')">⬇️ PDF</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Código</th><th>Estudiante</th><th>Facultad</th><th>Fecha</th><th>Hora de entrega</th></tr></thead>
+              <tbody id="tbody-historial"></tbody>
+            </table>
+            <div class="empty-state" id="empty-historial" style="display:none;">
+              <div class="em-icon">🗂️</div>
+              <div>No hay entregas registradas en este rango de fechas.</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    ComedorU · Proyecto de gestión de comedor universitario · Datos almacenados de forma persistente y compartida
+  </footer>
+</div>
+
+<div id="toast-stack"></div>
+
+<script src="js/storage.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
